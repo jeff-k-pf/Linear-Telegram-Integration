@@ -1,0 +1,18 @@
+{
+  "name": "linear-telegram-integration",
+  "version": "1.0.0",
+  "description": "Linear webhook to Telegram bot notifications",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "telegraf": "^4.16.3"
+  }
+}
