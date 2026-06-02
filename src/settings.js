@@ -21,20 +21,20 @@ const DEFAULTS = {
 };
 
 const LABELS = {
-  issue_created: '🆕 Issue Created',
-  issue_updated: '✏️ Issue Updated',
-  issue_deleted: '🗑️ Issue Deleted',
-  issue_status_changed: '🔄 Status Changed',
-  issue_assigned: '👤 Issue Assigned',
-  issue_priority_changed: '🚨 Priority Changed',
-  issue_title_changed: '📝 Title Changed',
-  comment_created: '💬 Comment Added',
-  comment_updated: '💬 Comment Edited',
-  comment_deleted: '💬 Comment Deleted',
-  project_created: '📁 Project Created',
-  project_updated: '📁 Project Updated',
-  cycle_started: '🔁 Cycle Started',
-  cycle_completed: '✅ Cycle Completed',
+  issue_created: 'Issue Created',
+  issue_updated: 'Issue Updated',
+  issue_deleted: 'Issue Deleted',
+  issue_status_changed: 'Status Changed',
+  issue_assigned: 'Issue Assigned',
+  issue_priority_changed: 'Priority Changed',
+  issue_title_changed: 'Title Changed',
+  comment_created: 'Comment Added',
+  comment_updated: 'Comment Edited',
+  comment_deleted: 'Comment Deleted',
+  project_created: 'Project Created',
+  project_updated: 'Project Updated',
+  cycle_started: 'Cycle Started',
+  cycle_completed: 'Cycle Completed',
 };
 
 function load() {
