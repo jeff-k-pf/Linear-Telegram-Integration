@@ -102,7 +102,7 @@ function formatIssue(action, data, updatedFrom = {}, getMention = () => null, ac
 
     if (updatedFrom.title !== undefined) {
       const p = ping(assigneeName, getMention);
-      events.push({ key: 'issue_title_changed', msg: `${p}<b>Title Changed</b>\n${esc(updatedFrom.title)} → ${esc(data.title)}${by}` });
+      events.push({ key: 'issue_title_changed', msg: `${p}<b>Title Changed</b>\n${link}\n${esc(updatedFrom.title)} → ${esc(data.title)}${by}` });
     }
 
     if (events.length === 0) {
