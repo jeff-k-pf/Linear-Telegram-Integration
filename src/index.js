@@ -11,6 +11,7 @@ const {
   TELEGRAM_BOT_TOKEN,
   LINEAR_WEBHOOK_SECRET,
   LINEAR_WEBHOOK_SECRETS,
+  PUBLIC_URL,
   PORT = 3000,
 } = process.env;
 
@@ -38,11 +39,15 @@ function verifySignature(rawBody, signature) {
   });
 }
 
-async function notify(chatId, text, url) {
+// Build the redirect URL that tries the Linear app then falls back to browser
+function openUrl(linearUrl) {
+  if (!linearUrl || !PUBLIC_URL) return linearUrl;
+  return `${PUBLIC_URL}/open?url=${encodeURIComponent(linearUrl)}`;
+}
+
+async function notify(chatId, text) {
   try {
-    const opts = { parse_mode: 'HTML', disable_web_page_preview: true };
-    if (url) opts.reply_markup = { inline_keyboard: [[{ text: 'Open in Linear', url }]] };
-    await bot.telegram.sendMessage(chatId, text, opts);
+    await bot.telegram.sendMessage(chatId, text, { parse_mode: 'HTML', disable_web_page_preview: true });
   } catch (err) {
     console.error(`Telegram send error (chat ${chatId}):`, err.message);
   }
@@ -59,7 +64,6 @@ async function dispatch(event, groupList, assigneeName) {
 
   const key = event.key ?? null;
   const msg = event.msg ?? event;
-  const url = event.url ?? null;
 
   if (key && !settings.isEnabled(key)) return;
 
@@ -72,7 +76,7 @@ async function dispatch(event, groupList, assigneeName) {
         if (!members.some(m => m.toLowerCase() === assigneeName.toLowerCase())) continue;
       }
     }
-    await notify(chatId, msg, url);
+    await notify(chatId, msg);
   }
 }
 
@@ -104,8 +108,32 @@ app.post('/webhook/linear/:team', async (req, res) => {
   }
 
   const assigneeName = data?.assignee?.name || null;
-  const event = format(type, action, data, updatedFrom, getMention, actor);
+  const event = format(type, action, data, updatedFrom, getMention, actor, openUrl);
   await dispatch(event, groupList, assigneeName);
+});
+
+// Deep link redirect — tries linear:// app first, falls back to https://
+app.get('/open', (req, res) => {
+  const target = req.query.url;
+  if (!target || !target.startsWith('https://linear.app/')) {
+    return res.status(400).send('Invalid URL');
+  }
+  const appLink = target.replace('https://', 'linear://');
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Opening Linear...</title>
+  <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f5f5;}p{color:#666;}</style>
+</head>
+<body>
+  <p>Opening Linear...</p>
+  <script>
+    window.location = '${appLink}';
+    setTimeout(function() { window.location = '${target}'; }, 2000);
+  </script>
+</body>
+</html>`);
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true }));

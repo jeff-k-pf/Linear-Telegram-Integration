@@ -12,10 +12,10 @@ function priorityLabel(p) {
   return ['No Priority', 'Urgent', 'High', 'Medium', 'Low'][p] ?? 'Unknown';
 }
 
-function issueLink(data) {
+function issueLink(data, getUrl = u => u) {
   const id = esc(data.identifier || data.id?.slice(0, 8));
   const title = esc(data.title || 'Untitled');
-  const url = data.url;
+  const url = data.url ? getUrl(data.url) : null;
   return url ? `<a href="${url}">${id}: ${title}</a>` : `<b>${id}: ${title}</b>`;
 }
 
@@ -41,18 +41,19 @@ function assigneeLine(name) {
 }
 
 // getMention(linearName) => "@username" or null — injected from users.js
-function format(type, action, data, updatedFrom, getMention = () => null, actor = null) {
+// getUrl(url) => redirect URL — injected from index.js
+function format(type, action, data, updatedFrom, getMention = () => null, actor = null, getUrl = u => u) {
   switch (type) {
-    case 'Issue':   return formatIssue(action, data, updatedFrom, getMention, actor);
-    case 'Comment': return formatComment(action, data, getMention, actor);
-    case 'Project': return formatProject(action, data);
+    case 'Issue':   return formatIssue(action, data, updatedFrom, getMention, actor, getUrl);
+    case 'Comment': return formatComment(action, data, getMention, actor, getUrl);
+    case 'Project': return formatProject(action, data, getUrl);
     case 'Cycle':   return formatCycle(action, data);
     default:        return null;
   }
 }
 
-function formatIssue(action, data, updatedFrom = {}, getMention = () => null, actor = null) {
-  const link = issueLink(data);
+function formatIssue(action, data, updatedFrom = {}, getMention = () => null, actor = null, getUrl = u => u) {
+  const link = issueLink(data, getUrl);
   const by = actorLine(actor, getMention);
   const assigneeName = data.assignee?.name;
   const assignee = assigneeLine(assigneeName);
@@ -109,8 +110,8 @@ function formatIssue(action, data, updatedFrom = {}, getMention = () => null, ac
   return null;
 }
 
-function formatComment(action, data, getMention = () => null, actor = null) {
-  const issueLink_ = data.issue ? issueLink(data.issue) : `<b>issue</b>`;
+function formatComment(action, data, getMention = () => null, actor = null, getUrl = u => u) {
+  const issueLink_ = data.issue ? issueLink(data.issue, getUrl) : `<b>issue</b>`;
   const body = esc((data.body || '').slice(0, 200)) + ((data.body || '').length > 200 ? '…' : '');
   const by = actorLine(actor, getMention);
   const url = data.issue?.url;
@@ -127,9 +128,10 @@ function formatComment(action, data, getMention = () => null, actor = null) {
   return null;
 }
 
-function formatProject(action, data) {
+function formatProject(action, data, getUrl = u => u) {
   const name = esc(data.name || 'Untitled Project');
-  const link = data.url ? `<a href="${data.url}">${name}</a>` : `<b>${name}</b>`;
+  const url = data.url ? getUrl(data.url) : null;
+  const link = url ? `<a href="${url}">${name}</a>` : `<b>${name}</b>`;
 
   if (action === 'create') return event('project_created', `<b>Project Created</b>\n${link}`, data.url);
   if (action === 'update') return event('project_updated', `<b>Project Updated</b>\n${link}`, data.url);
