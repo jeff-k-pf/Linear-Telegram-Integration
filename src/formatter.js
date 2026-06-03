@@ -19,13 +19,8 @@ function issueLink(data) {
   return url ? `<a href="${url}">${id}: ${title}</a>` : `<b>${id}: ${title}</b>`;
 }
 
-// Convert https Linear URL to linear:// deep link for inline buttons
-function appUrl(url) {
-  return url ? url.replace('https://', 'linear://') : null;
-}
-
 function event(key, msg, url) {
-  return { key, msg, url: appUrl(url) };
+  return { key, msg, url: url || null };
 }
 
 function actorLine(actor, getMention) {
