@@ -388,13 +388,17 @@ function buildNotificationsKeyboard(chatId) {
 
 function buildMembersKeyboard(chatId) {
   const userMapFile = path.join(__dirname, '..', 'user-map.json');
-  let allUsers = [];
+  let globalUsers = [];
   try {
-    allUsers = Object.keys(JSON.parse(fs.readFileSync(userMapFile, 'utf8')));
+    globalUsers = Object.keys(JSON.parse(fs.readFileSync(userMapFile, 'utf8')));
   } catch {}
 
   const activeMembers = groups.getMembers(chatId);
-  const buttons = allUsers.map(name => {
+
+  // Show everyone: global user-map + anyone already in this group's filter (added via /add)
+  const allNames = [...new Set([...globalUsers, ...activeMembers])].sort();
+
+  const buttons = allNames.map(name => {
     const on = activeMembers.some(m => m.toLowerCase() === name.toLowerCase());
     return [Markup.button.callback(`${on ? '✅' : '❌'} ${name}`, `togglemember:${name}`)];
   });
