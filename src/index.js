@@ -5,6 +5,7 @@ const { createBot } = require('./bot');
 const { format } = require('./formatter');
 const groups = require('./groups');
 const { getMention } = require('./users');
+const stateCache = require('./state-cache');
 
 const {
   TELEGRAM_BOT_TOKEN,
@@ -144,6 +145,16 @@ async function handleLinear(req, res) {
   const actorName = actor?.name || null;
   const subscriberNames = (data?.subscribers || []).map(s => s.name).filter(Boolean);
   const relevantNames = [...new Set([assigneeName, actorName, ...subscriberNames].filter(Boolean))];
+
+  // Cache current state name so we can resolve previous state names from IDs later
+  if (data?.state?.id && data?.state?.name) {
+    stateCache.set(data.state.id, data.state.name);
+  }
+
+  // Resolve previous state name from cache so formatter can show "Todo → Done" instead of "previous → Done"
+  if (updatedFrom?.stateId && !updatedFrom.stateName) {
+    updatedFrom.stateName = stateCache.get(updatedFrom.stateId) || null;
+  }
 
   // Auto-register any new status name so it appears in /settings for each chat
   if (type === 'Issue' && action === 'update' && data?.state?.name) {
