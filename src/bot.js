@@ -225,6 +225,28 @@ function createBot(token) {
     ctx.reply(`<b>Users (${entries.length})</b>\n${lines}`, { parse_mode: 'HTML' });
   });
 
+  bot.command('debugusers', (ctx) => {
+    const userMapFile = path.join(__dirname, '..', 'user-map.json');
+    let raw = '';
+    let parsed = null;
+    let err = null;
+    try {
+      raw = fs.readFileSync(userMapFile, 'utf8');
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      err = e.message;
+    }
+    const activeMembers = groups.getMembers(ctx.chat.id);
+    ctx.reply(
+      `<b>Debug: user-map.json</b>\n` +
+      `Path: <code>${userMapFile}</code>\n` +
+      `Read error: ${err || 'none'}\n` +
+      `Keys found: ${parsed ? Object.keys(parsed).join(', ') || '(empty)' : 'n/a'}\n\n` +
+      `<b>Active members in this chat:</b>\n${activeMembers.join(', ') || 'none'}`,
+      { parse_mode: 'HTML' }
+    );
+  });
+
   // ─── Settings menu ─────────────────────────────────────────────────────────
 
   bot.command('settings', (ctx) => {
