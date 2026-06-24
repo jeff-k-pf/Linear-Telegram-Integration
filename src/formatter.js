@@ -117,10 +117,15 @@ function formatIssue(action, data, updatedFrom = {}, getMention = () => null, ac
   return null;
 }
 
+function resolveCommentMentions(text, getMentionFn) {
+  return text.replace(/@([\w]+)/g, (match, username) => getMentionFn(username) || match);
+}
+
 function formatComment(action, data, getMention = () => null, actor = null, getUrl = u => u) {
   const issueLink_ = data.issue ? issueLink(data.issue, getUrl) : `<b>issue</b>`;
   const rawBody = (data.body || '').replace(/!\[[^\]]*\]\((https?:\/\/[^)]+)\)/g, '[screenshot]').trim();
-  const body = esc(rawBody.slice(0, 200)) + (rawBody.length > 200 ? '…' : '');
+  const resolvedBody = resolveCommentMentions(rawBody, getMention);
+  const body = esc(resolvedBody.slice(0, 200)) + (resolvedBody.length > 200 ? '…' : '');
   const by = actorStr(actor, getMention);
   const url = data.issue?.url;
   const assigneeName = data.issue?.assignee?.name;

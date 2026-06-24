@@ -12,7 +12,10 @@ function load() {
 function getMention(linearName) {
   if (!linearName) return null;
   const map = load();
-  return map[linearName] || null;
+  if (map[linearName]) return map[linearName];
+  // Case-insensitive fallback so @mackenzie in a comment matches key "Mackenzie"
+  const key = Object.keys(map).find(k => k.toLowerCase() === linearName.toLowerCase());
+  return key ? (map[key] || null) : null;
 }
 
 function addUser(linearName, telegramHandle) {
@@ -29,9 +32,18 @@ function removeUser(linearName) {
 
 function editUser(oldName, newName, newHandle) {
   const map = load();
-  if (!(oldName in map)) throw new Error(`User "${oldName}" not found. Check spelling with /users.`);
-  const existingHandle = map[oldName];
-  delete map[oldName];
+
+  let key = oldName;
+  if (!(oldName in map)) {
+    // Also try matching by Telegram handle (e.g. user typed "@mackenzie" instead of "Mackenzie")
+    const entry = Object.entries(map).find(([, v]) => v === oldName);
+    if (!entry) throw new Error(`User "${oldName}" not found. Use the Linear display name (e.g. "Mackenzie"), not the handle. Check with /users.`);
+    key = entry[0];
+    if (newName === oldName) newName = key; // handle-only update: keep the Linear name
+  }
+
+  const existingHandle = map[key];
+  delete map[key];
   map[newName] = newHandle !== undefined ? newHandle : existingHandle;
   fs.writeFileSync(FILE, JSON.stringify(map, null, 2));
 }
