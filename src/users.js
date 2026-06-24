@@ -13,9 +13,13 @@ function getMention(linearName) {
   if (!linearName) return null;
   const map = load();
   if (map[linearName]) return map[linearName];
-  // Case-insensitive fallback so @mackenzie in a comment matches key "Mackenzie"
-  const key = Object.keys(map).find(k => k.toLowerCase() === linearName.toLowerCase());
-  return key ? (map[key] || null) : null;
+  const lower = linearName.toLowerCase();
+  // Case-insensitive full-name match
+  const fullKey = Object.keys(map).find(k => k.toLowerCase() === lower);
+  if (fullKey) return map[fullKey] || null;
+  // First-name match — "@jeff" in a comment matches key "Jeff Kim"
+  const firstKey = Object.keys(map).find(k => k.split(' ')[0].toLowerCase() === lower);
+  return firstKey ? (map[firstKey] || null) : null;
 }
 
 function addUser(linearName, telegramHandle) {
