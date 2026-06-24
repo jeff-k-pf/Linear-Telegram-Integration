@@ -118,7 +118,8 @@ function formatIssue(action, data, updatedFrom = {}, getMention = () => null, ac
 }
 
 function resolveCommentMentions(text, getMentionFn) {
-  return text.replace(/@([\w]+)/g, (match, username) => getMentionFn(username) || match);
+  // Match @handle patterns including dots and hyphens common in Linear usernames
+  return text.replace(/@([\w][\w.-]*[\w]|[\w])/g, (match, username) => getMentionFn(username) || match);
 }
 
 function formatComment(action, data, getMention = () => null, actor = null, getUrl = u => u) {
